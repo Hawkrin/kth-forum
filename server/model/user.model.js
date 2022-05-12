@@ -29,10 +29,13 @@ userSchema.pre("save", function (next) {
     const user = this;
 
     //Checks if user has changed password, if not just continue.
-    if (!user.isModified("password")) return next();
+    if (!user.isModified("password") && !user.isModified("email")) return next();
 
     //Validate password
     if (!validator.isLength(user.password, { min: 8, max: 16 })) return next(new Error("Password is not strong."))
+
+    //Validate Email
+    if (!validator.isEmail(user.email)) return next(new Error("Email is not a valid email."))
 
     //Generate encrypted password and setting password to the hash.
     const salt = bcrypt.genSaltSync(10);
