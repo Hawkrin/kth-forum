@@ -1,35 +1,49 @@
 const mongoose = require("mongoose")
 const validator = require('validator');
 
+//Utils
+const bcrypt = require("bcrypt")
+
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
+
     password: {
         type: String,
         required: true,
-        validationIsStrongPassword:{
-            validator: validator.isStrongPassword("", {minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1}),
-            message: 'The password needs to be at least 8 digits and contain at least 1 uppercase letter, 1 lowercase letter and 1 number',
-        },
-        validationNoPassword:{
-            validator: validator.isEmpty("", { ignore_whitespace:false }),
-            message: 'A password needs to be entered',
-        },
     },
+
     email: {
         type: String,
         required: true,
-        validationEmailFormat:{
-            validator: validator.isEmail('foo@bar.com'),
-            message: '{VALUE} is not a valid email',
-        },
-        validationNoEmail:{
-            validator: validator.isEmpty("", { ignore_whitespace:false }),
-            message: 'An email needs to be entered',
-        },
+        lowercase: true,
+        unique: true
     }
 })
+
+userSchema.pre("save", function (next) {
+    //User instance
+    const user = this;
+
+    //Checks if user has changed password, if not just continue.
+    if (!user.isModified("password")) return next();
+
+    //Validate password
+    if (!validator.isLength(user.password, { min: 8, max: 16 })) return next(new Error("Password is not strong."))
+
+    //Generate encrypted password and setting password to the hash.
+    const salt = bcrypt.genSaltSync(10);
+    const encryptedPassword = bcrypt.hashSync(user.password, salt);
+    user.password = encryptedPassword;
+
+    next();
+})
+
+userSchema.statics.userAlreadyExists = function (username, email) {
+    return this.findOne({ $or: [{ username }, { email }] })
+}
 
 module.exports = mongoose.model("user", userSchema)

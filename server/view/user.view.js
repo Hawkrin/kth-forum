@@ -1,12 +1,15 @@
 const _ = require("lodash")
-const bcrypt = require('bcrypt');
 
+//Express
+const express = require("express")
+const router = express.Router();
+
+//Controller
 const { register } = require('../controller/user.controller')
 
+module.exports = router
 
-module.exports = (app) => {
-    app.post("/api/user/register", (req, res) => {
-
+    .post("/register", (req, res) => {
         let { username, email, password } = _.pick(req.body, ["username", "password", "email"])
 
         register(username, password, email)
@@ -17,4 +20,4 @@ module.exports = (app) => {
                 return res.json(error)
             })
     })
-}
+

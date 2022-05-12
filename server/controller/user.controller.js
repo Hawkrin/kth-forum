@@ -1,6 +1,3 @@
-//Utils
-const bcrypt = require("bcrypt")
-
 //Model
 const User = require("../model/user.model")
 
@@ -18,24 +15,24 @@ const User = require("../model/user.model")
 const register = (username, password, email) => {
     return new Promise((resolve, reject) => {
 
-        User.findOne({ $or: [{ username }, { email }] }, (error, user) => {
-            if (error) { console.log(error); return reject(error.message); }
-            if (user) { return reject("User already exists") }
+        User.userAlreadyExists(username, email)
+            .then((userExists) => {
+                if (userExists) { return reject("User Already exists"); }
 
-            const salt = bcrypt.genSaltSync(10)
-            const encryptedPassword = bcrypt.hashSync(password, salt)
+                const newUser = new User({
+                    username,
+                    password,
+                    email
+                })
 
-            const newUser = new User({
-                username,
-                password: encryptedPassword,
-                email
+                newUser.save((error) => {
+                    if (error) { console.log(error); reject(error.message); }
+                    resolve(newUser)
+                })
             })
-
-            newUser.save((error) => {
-                if (error) { console.log(error); reject(error.message); }
-                resolve(newUser)
+            .catch((error) => {
+                return reject(error.message);
             })
-        })
     })
 }
 

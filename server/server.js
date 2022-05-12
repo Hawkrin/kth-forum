@@ -22,7 +22,7 @@ require("./db").connect()
     })
 
 //API Requests
-require("./view/user.view")(app)
+app.use("/user", require("./view/user.view"))
 
 server.listen(port, () => {
     console.log("Server is running on port: " + port)
