@@ -1,23 +1,35 @@
+//Utils
+const bcrypt = require("bcrypt")
+
+//Model
 const User = require("../model/user.model")
 
+/**
+ * Register user by taking username, password and email.
+ * Encrypting password with hash and salt.
+ * Returning a promise, resolve if successfully register user.
+ * Reject if probles occured registering user. 
+ * 
+ * @param {String} username 
+ * @param {String} password 
+ * @param {String} email 
+ * @returns {Promise}
+ */
 const register = (username, password, email) => {
     return new Promise((resolve, reject) => {
 
-        //Check if email is valid. !
-        //Email cannot be already in use.
-        //password fulfilles requirement !
-        //Username cannot be already in use.
-
-        User.findOne({$or:[{username}, {email}]}, (error, user) => {
+        User.findOne({ $or: [{ username }, { email }] }, (error, user) => {
             if (error) { console.log(error); return reject(error.message); }
-            if (user) { return reject("User already exists")}
+            if (user) { return reject("User already exists") }
 
-            let newUser = new User({
+            const salt = bcrypt.genSaltSync(10)
+            const encryptedPassword = bcrypt.hashSync(password, salt)
+
+            const newUser = new User({
                 username,
-                password,
+                password: encryptedPassword,
                 email
             })
-
 
             newUser.save((error) => {
                 if (error) { console.log(error); reject(error.message); }
