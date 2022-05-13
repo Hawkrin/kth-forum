@@ -13,27 +13,27 @@ const User = require("../model/user.model")
  * @returns {Promise}
  */
 const register = (username, password, email) => {
-    return new Promise((resolve, reject) => {
 
-        User.userAlreadyExists(username, email)
-            .then((userExists) => {
-                if (userExists) { return reject("User Already exists"); }
+    User.userAlreadyExists(username, email)
+        .then((userExists) => {
 
-                const newUser = new User({
-                    username,
-                    password,
-                    email
-                })
+            if (userExists) { return reject("User Already exists"); }
 
-                newUser.save((error) => {
-                    if (error) { console.log(error); reject(error.message); }
-                    resolve(newUser)
-                })
+            const newUser = new User({
+                username,
+                password,
+                email
             })
-            .catch((error) => {
-                return reject(error.message);
+
+            newUser.save((error) => {
+                if (error) { console.log(error); reject(error.message); }
+                resolve(newUser)
             })
-    })
+        })
+        .catch((error) => {
+            return reject(error.message);
+        })
+
 }
 
 module.exports = { register }
